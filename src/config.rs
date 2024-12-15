@@ -26,9 +26,10 @@ use std::{
     path::PathBuf,
 };
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct Config {
     pub database_path: PathBuf,
+    pub template_path: PathBuf,
 
     #[serde(default = "log_level_default")]
     pub log_level: LogLevel,
@@ -41,7 +42,7 @@ pub struct Config {
     pub listen_port: u16,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub enum LogLevel {
     Info,
     Warn,

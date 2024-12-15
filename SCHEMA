@@ -1,21 +1,44 @@
-CREATE TABLE sites (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    url TEXT UNIQUE,
+CREATE TABLE site_ids(id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      url TEXT UNIQUE);
+
+CREATE TABLE sites (id INTEGER REFERENCES site_ids(id),
                     size FLOAT,
                     date_added DATETIME,
-                    banned BOOL,
                     valid BOOL,
+                    banned BOOL
 );
-CREATE TABLE related (id INT REFERENCES sites(id), link TEXT UNIQUE, title TEXT, upvotes INT);
-CREATE TABLE validation_queue(url TEXT UNIQUE,
+
+CREATE TABLE related (id INT REFERENCES site_ids(id),
+                      url TEXT,
+                      discussion_url TEXT UNIQUE,
+                      date DATETIME,
+                      title TEXT,
+                      score INT,
+                      comments INT
+);
+
+CREATE TABLE blocked_site_patterns(id INTEGER PRIMARY KEY AUTOINCREMENT, pattern TEXT, notes TEXT);
+
+CREATE TABLE validation_queue(id INTEGER REFERENCES site_ids(id),
                     scan BOOL,
+                    date_added DATETIME,
                     last_checked DATETIME,
                     site_live BOOL,
                     urlscan_reportid TEXT,
                     urlscan_check_timestamp DATETIME,
-                    urlscan_validated BOOL,
+                    urlscan_validated BOOL
 );
-CREATE TABLE validation_log (id INT REFERENCES sites(id), timestamp DATETIME, comment TEXT);
-CREATE TABLE voter_ids(id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT UNIQUE, email TEXT UNIQUE);
-CREATE TABLE votes(id INTEGER REFERENCES sites(id), voter_id INTEGER REFERENCES voter_ids(id),
+
+CREATE TABLE validation_log (id INT REFERENCES site_ids(id),
+                             timestamp DATETIME,
+                             comment TEXT
+);
+
+CREATE TABLE voter_ids(id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       secret TEXT UNIQUE,
+);
+
+CREATE TABLE votes(id INTEGER NOT NULL REFERENCES site_ids(id),
+                   voter_id INTEGER NOT NULL REFERENCES voter_ids(id),
                    UNIQUE(id, voter_id)
 );

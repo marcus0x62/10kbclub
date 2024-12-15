@@ -59,7 +59,10 @@ pub struct HtmlError {
 
 impl ResponseError for HtmlError {
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(StatusCode::from_u16(self.code).unwrap()).body(self.status.clone())
+        HttpResponse::build(StatusCode::from_u16(self.code).unwrap()).body(minijinja::render!(
+                include_str!("/home/marcusb/code/10kbclub/templates/error.html"),
+                message => self.status,
+        ))
     }
 }
 
@@ -94,6 +97,24 @@ impl From<BlockingError> for HtmlError {
         Self {
             code: 500,
             status: err.to_string(),
+        }
+    }
+}
+
+impl From<minijinja::Error> for HtmlError {
+    fn from(err: minijinja::Error) -> Self {
+        Self {
+            code: 500,
+            status: err.to_string(),
+        }
+    }
+}
+
+impl From<url::ParseError> for HtmlError {
+    fn from(err: url::ParseError) -> Self {
+        Self {
+            code: 500,
+            status: format!("invalid url: {}", err),
         }
     }
 }

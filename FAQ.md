@@ -31,7 +31,7 @@ The other difference is I wanted to make it easier to submit a site.  Most of th
 other clubs require submitting a PR, and while I understand that is a) easy to
 implement and b) cuts down on spam, I'd rather make submitting new content easier
 on users.  So, here, you can
-[submit a URL directly on the site](https://10kb.club/submit). **Note: this does
+[submit a URL directly on the site](https://10kb.club/submit.html). **Note: this does
 not mean that I'm not going to aggresively combat spam.**
 
 Are there quality standards for the sites submitted?
@@ -62,18 +62,7 @@ How are sites approved?
 2) If that passes, then a more thorough check with
 [Cloudflare Radar](https://radar.cloudflare.com).
 
-3) If that passes, then I do a final manual review.  You can
-[check the status](https://10kb.club/status) of a submitted site any time.
+3) If that passes, then I do a final manual review.
 
 **Sites are periodically re-tested to make sure they are still up, and still
 meet the size requirement.**
-
-My site is 10,241 bytes.  What do I do?
----------------------------------------
-
-Delete some stuff?  Or [try this club](https://100kb.club).
-
-This is stupid. [favorite metric] is more important than page size.
--------------------------------------------------------------------
-
-Ok.

@@ -1,0 +1,62 @@
+{% extends "outline.html" %}
+{% block title %}The 10KiB Club{% endblock %}
+{% block content %}
+ <main>
+      <h2>The 10KB Club</h2>
+      <p>The 10kb club is an index of small websites with home pages less than 10KiB,
+        or 10,240 bytes. By default, the sites are sorted based on user votes, rather than size, to
+        showcase sites that are truly interesting, rather than just tiny. If there are
+        <a href="https://news.ycombinator.com">Hacker News</a> or
+        <a href="https://lobste.rs">Lobsters</a> discussions related to a site, those will be
+        linked alongside the site.  <a href="/faq">Read the FAQ</a> for more details on site
+        eligibility criteria.</p>
+
+      <p>Feel free to <a href="/submit.html">submit</a> new sites that are 10KiB or less!</p>
+
+      <p>If you like this, check out these other clubs:
+        <ul>
+          <li><a href="https://250kb.club">The 250KB Club</a></li>
+          <li><a href="https://512kb.club">The 512KB Club</a></li>
+          <li><a href="https://1mb.club">The 1MB Club</a></li>
+        </ul>
+      </p>
+
+      <table>
+        <tr>
+          <th> </th>
+          <th>Rank</th>
+          <th>Site</th>
+          <th>Size</th>
+          <th>Links</th>
+        </tr>
+        {% for site in sites %}
+        <tr class="{{ loop.cycle('even', 'odd') }}">
+          <td><div class="{{ loop.cycle('even', 'odd') }}" id="vote-{{ site.id }}"></div></td>
+          <td>#{{ site.offset }}</td>
+          <td><a class = "{{ loop.cycle('even', 'odd') }}" href="{{ site.url }}">{{ site.url }}</a></td>
+          <td>{{ site.size }} KiB</td>
+          <td>
+            {% if site.related > 0 %}
+            <a class="{{ loop.cycle('even', 'odd') }}" href="/related/{{ site.id }}/">
+              {{ site.related }} related {% if site.related == 1 %} discussion {% else %} discussions {% endif %}
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% if prev_link != "" %}
+        <a href="{{ prev_link }}">&lt;&lt;</a>
+      {% endif %}
+      {% for link in page_links %}
+        {% if link.uri != "" %}
+          <a href="{{ link.uri }}">{{ link.index }}</a>
+        {% else %}
+          <b>{{ link.index }}</b>
+        {% endif %}
+      {% endfor %}
+      {% if next_link != "" %}
+        <a href="{{ next_link }}">&gt;&gt;</a>
+      {% endif %}
+ </main>
+{% endblock %}

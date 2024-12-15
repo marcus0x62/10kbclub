@@ -25,10 +25,12 @@ use serde::{Deserialize, Serialize};
 use std::{fmt, fmt::Display, fmt::Formatter};
 use tracing::error;
 
+pub mod analyzer;
 pub mod cloudflare;
 pub mod config;
 pub mod database;
 pub mod error;
+pub mod relatedlinks;
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum SortOptions {
@@ -59,6 +61,7 @@ pub struct Site {
     id: u32,
     url: String,
     size: String,
+    related: u32,
 }
 
 pub fn get_client_ip(req: &HttpRequest) -> Result<String, String> {

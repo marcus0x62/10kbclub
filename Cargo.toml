@@ -4,10 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "tenkb_analyzer"
-path = "src/bin/tenkb_analyzer.rs"
-
-[[bin]]
 name = "tenkb_server"
 path = "src/bin/tenkb_server.rs"
 
@@ -17,10 +13,11 @@ chrono = "0.4.38"
 clap = { version = "4.5.21", features = ["derive"] }
 hex = "0.4.3"
 mime = "0.3.17"
-minijinja = "2.5.0"
+minijinja = { version = "2.5.0", features = ["loader"] }
 r2d2 = "0.8.10"
 r2d2_sqlite = "0.25.0"
 rand = "0.8.5"
+regex = "1.11.1"
 reqwest = { version = "0.12", features = ["json"] }
 rusqlite = "0.32.1"
 serde = { version = "1.0.215", features = ["derive"] }
@@ -28,3 +25,4 @@ serde_json = "1.0.133"
 tokio = { version = "1.41.1", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
+url = "2.5.4"

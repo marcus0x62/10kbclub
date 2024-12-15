@@ -21,10 +21,13 @@
 // SOFTWARE.
 use actix_web::{web, Result};
 use r2d2_sqlite::SqliteConnectionManager;
+use regex::Regex;
 use rusqlite::params;
 use std::{error::Error, path::PathBuf};
+use tracing::info;
 
 use crate::error::TenKbError;
+use crate::relatedlinks::RelatedLink;
 use crate::{Site, SortOptions};
 
 pub type Pool = r2d2::Pool<SqliteConnectionManager>;
@@ -62,15 +65,24 @@ pub fn get_sites(
 
     let db_query = match sortby {
         SortOptions::Votes => {
-            r#"SELECT sites.id, url, size,
-                      (SELECT COUNT(*) FROM votes WHERE votes.id = sites.id) AS upvotes
-               FROM sites WHERE valid = true ORDER BY upvotes DESC, size ASC LIMIT ?,?"#
+            r#"SELECT site_ids.id, site_ids.url, sites.size,
+                      (SELECT COUNT(*) FROM related WHERE related.id = site_ids.id) AS related,
+                      (SELECT COUNT(*) FROM votes WHERE votes.id = site_ids.id) AS upvotes
+               FROM site_ids LEFT JOIN sites
+               WHERE site_ids.id = sites.id AND valid = true
+               ORDER BY upvotes DESC, size ASC LIMIT ?,?"#
         }
         SortOptions::Size => {
-            r#"SELECT id, url, size FROM sites WHERE valid = true ORDER BY size LIMIT ?,?"#
+            r#"SELECT site_ids.id, site_ids.url, sites.size,
+                      (SELECT COUNT(*) FROM related WHERE related.id = site_ids.id) AS related
+               FROM site_ids LEFT JOIN sites WHERE site_ids.id = sites.id AND valid = true
+               ORDER BY size LIMIT ?,?"#
         }
         SortOptions::New => {
-            r#"SELECT id, url, size FROM sites WHERE valid = true ORDER BY date_added LIMIT ?,?"#
+            r#"SELECT site_ids.id, site_ids.url, sites.size,
+                      (SELECT COUNT(*) FROM related WHERE related.id = site_ids.id) AS related
+               FROM site_ids LEFT JOIN sites WHERE site_ids.id = sites.id AND valid = true
+               ORDER BY date_added LIMIT ?,?"#
         }
     };
 
@@ -87,6 +99,7 @@ pub fn get_sites(
             id: row.get(0)?,
             url: row.get(1)?,
             size: format!("{:0.3}", size / 1024.0),
+            related: row.get(3)?,
         })
     })?;
 
@@ -106,6 +119,104 @@ pub fn get_site_count(pool: &Pool) -> Result<usize, TenKbError> {
         Some(Err(e)) => Err(e)?,
         None => Err(TenKbError::Msg("Query returned no rows".into())),
     }
+}
+
+pub fn get_site_url(pool: &Pool, id: u32) -> Result<String, TenKbError> {
+    let db_query = r#"SELECT url FROM site_ids WHERE id = ?;"#;
+
+    let conn = pool.clone().get()?;
+    let mut statement = conn.prepare(db_query)?;
+    let res = statement.query_map([&id], |row| row.get(0))?;
+
+    let res = res.into_iter().next();
+    match res {
+        Some(Ok(c)) => Ok(c),
+        Some(Err(e)) => Err(e)?,
+        None => Err(TenKbError::Msg("Query returned no rows".into())),
+    }
+}
+
+pub fn submit_site(pool: web::Data<Pool>, site: String) -> Result<(), TenKbError> {
+    if check_site_active(&pool, &site)? {
+        info!("site '{site}' is already active");
+        return Err(TenKbError::Msg(format!(
+            "site '{site}' is already in the database"
+        )));
+    }
+
+    if check_site_blocked(&pool, &site)? {
+        info!("site '{site}' is blocked");
+        return Err(TenKbError::Msg(format!(
+            "sorry! site '{site}' is blocked from submission"
+        )));
+    }
+
+    if check_site_queued(&pool, &site)? {
+        info!("site '{site}' is already queued for validation");
+        return Err(TenKbError::Msg(format!(
+            "site '{site}' is already pending validation"
+        )));
+    }
+
+    let conn = pool.clone().get()?;
+
+    let query = r#"INSERT INTO site_ids (url) VALUES (?);"#;
+    let mut statement = conn.prepare(query)?;
+    statement.execute([&site])?;
+
+    let query = r#"INSERT INTO validation_queue (id, date_added, scan)
+        VALUES ((SELECT id FROM site_ids WHERE url = ?), DATETIME(), true);"#;
+
+    let mut statement = conn.prepare(query)?;
+    statement.execute([&site])?;
+
+    Ok(())
+}
+
+pub fn check_site_active(pool: &web::Data<Pool>, site: &String) -> Result<bool, TenKbError> {
+    let query = r#"SELECT site_ids.id FROM site_ids LEFT JOIN sites
+                   WHERE site_ids.id = sites.id AND site_ids.url = ? AND sites.valid = true;"#;
+
+    let conn = pool.clone().get()?;
+    let mut statement = conn.prepare(query)?;
+
+    let rows = statement.query_map([&site], |row| row.get::<usize, u32>(0))?;
+
+    Ok(!rows.filter_map(Result::ok).collect::<Vec<u32>>().is_empty())
+}
+
+pub fn check_site_blocked(pool: &web::Data<Pool>, site: &String) -> Result<bool, TenKbError> {
+    let query = r#"SELECT pattern FROM blocked_site_patterns;"#;
+
+    let conn = pool.clone().get()?;
+    let mut statement = conn.prepare(query)?;
+
+    let rows = statement.query_map([], |row| row.get::<usize, String>(0))?;
+
+    for pattern in rows.filter_map(Result::ok).collect::<Vec<String>>() {
+        let Ok(re) = Regex::new(&pattern[..]) else {
+            continue;
+        };
+
+        if re.is_match(&site[..]) {
+            info!("site '{site}' matched block pattern '{pattern}'");
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
+}
+
+pub fn check_site_queued(pool: &web::Data<Pool>, site: &String) -> Result<bool, TenKbError> {
+    let query = r#"SELECT site_ids.id FROM site_ids LEFT JOIN validation_queue
+                   WHERE validation_queue.id = site_ids.id AND site_ids.url = ?"#;
+
+    let conn = pool.clone().get()?;
+    let mut statement = conn.prepare(query)?;
+
+    let rows = statement.query_map([&site], |row| row.get::<usize, u32>(0))?;
+
+    Ok(!rows.filter_map(Result::ok).collect::<Vec<u32>>().is_empty())
 }
 
 pub fn generate_id(pool: web::Data<Pool>, id: String) -> Result<(), TenKbError> {
@@ -156,7 +267,8 @@ pub fn get_votes(pool: web::Data<Pool>, voter_id: String) -> Result<Vec<u32>, Te
 pub fn get_validation_queue(pool: &Pool) -> Result<Vec<String>, Box<dyn Error>> {
     let conn = pool.clone().get()?;
 
-    let db_query = r#"SELECT url from validation_queue WHERE scan = true;"#;
+    let db_query = r#"SELECT site_ids.url FROM site_ids LEFT JOIN validation_queue
+                      WHERE site_ids.id = validation_queue.id AND validation_queue.scan = true"#;
 
     let mut statement = conn.prepare(db_query)?;
     let rows = statement.query_map([], |row| row.get::<usize, String>(0))?;
@@ -166,7 +278,8 @@ pub fn get_validation_queue(pool: &Pool) -> Result<Vec<String>, Box<dyn Error>> 
 pub fn mark_bad(pool: &Pool, site: &str) -> Result<(), Box<dyn Error>> {
     let conn = pool.clone().get()?;
     conn.execute(
-        r#"UPDATE validation_queue SET valid = false, scan = false WHERE url = ?"#,
+        r#"UPDATE validation_queue SET scan = false
+           WHERE id = (SELECT id FROM site_ids WHERE url = ?)"#,
         params![site],
     )?;
 
@@ -174,10 +287,16 @@ pub fn mark_bad(pool: &Pool, site: &str) -> Result<(), Box<dyn Error>> {
 }
 
 pub fn mark_bad_size(pool: &Pool, site: &str, size: f64) -> Result<(), Box<dyn Error>> {
+    log_validation_failure(
+        pool,
+        site,
+        format!("size validation failed: site is {size} bytes"),
+    )?;
+
     let conn = pool.clone().get()?;
     conn.execute(
-        r#"UPDATE validation_queue SET valid = false, size = ?, scan = false WHERE url = ?"#,
-        params![size, site],
+        r#"UPDATE validation_queue SET scan = false WHERE id = (SELECT id from site_ids WHERE url = ?)"#,
+        params![site],
     )?;
     Ok(())
 }
@@ -186,8 +305,80 @@ pub fn mark_good(pool: &Pool, site: &str, size: f64) -> Result<(), Box<dyn Error
     let pool = pool.clone();
     let conn = pool.clone().get()?;
     conn.execute(
-        r#"UPDATE validation_queu SET valid = true, size = ?, scan = false WHERE url = ?"#,
-        params![size, site],
+        r#"DELETE from validation_queue WHERE id = (SELECT id FROM site_ids WHERE url = ?)"#,
+        params![site],
     )?;
+
+    conn.execute(
+        r#"INSERT INTO sites (id, date_added, size, valid)
+          VALUES((SELECT id FROM site_ids WHERE url = ?), DATETIME(), ?, true);"#,
+        params![site, size],
+    )?;
+
+    Ok(())
+}
+
+pub fn get_related(pool: &Pool, site: u32) -> Result<Vec<RelatedLink>, TenKbError> {
+    let conn = pool.clone().get()?;
+
+    let db_query =
+        r#"SELECT url, discussion_url, date, title, score, comments FROM related WHERE ID = ?"#;
+
+    let mut statement = conn.prepare(db_query)?;
+
+    let rows = statement.query_map([&site], |row| {
+        Ok(RelatedLink {
+            url: row.get(0)?,
+            discussion_url: row.get(1)?,
+            date: row.get(2)?,
+            description: row.get(3)?,
+            upvotes: row.get(4)?,
+            comments: row.get(5)?,
+        })
+    })?;
+
+    Ok(rows.filter_map(Result::ok).collect::<Vec<RelatedLink>>())
+}
+
+pub fn update_related(
+    pool: &Pool,
+    site: &str,
+    related: Vec<RelatedLink>,
+) -> Result<(), Box<dyn Error>> {
+    let pool = pool.clone();
+    let conn = pool.clone().get()?;
+    conn.execute(
+        r#"DELETE from related WHERE id = (SELECT id from site_ids WHERE url = ?);"#,
+        params![site],
+    )?;
+
+    for link in related {
+        conn.execute(
+            r#"INSERT INTO related
+               VALUES ((SELECT id FROM site_ids WHERE url = ?), ?, ?, ?, ?, ?, ?);"#,
+            params![
+                site,
+                link.url,
+                link.discussion_url,
+                link.date,
+                link.description,
+                link.upvotes,
+                link.comments,
+            ],
+        )?;
+    }
+
+    Ok(())
+}
+
+pub fn log_validation_failure(pool: &Pool, site: &str, msg: String) -> Result<(), Box<dyn Error>> {
+    let pool = pool.clone();
+    let conn = pool.clone().get()?;
+    conn.execute(
+        r#"INSERT INTO validation_log
+           VALUES ((SELECT id FROM site_ids WHERE url = ?), DATETIME(), ?)"#,
+        params![site, msg],
+    )?;
+
     Ok(())
 }

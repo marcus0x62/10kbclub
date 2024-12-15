@@ -1,0 +1,23 @@
+{% extends "outline.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+    <main>
+      <h2>{{ title }}</h2>
+      <table>
+        <tr>
+          <th>Title</th>
+          <th>Discussion Link</th>
+          <th>Score</th>
+          <th>Comments</th>
+        </tr>
+        {% for link in related %}
+        <tr class="{{ loop.cycle('even', 'odd') }}">
+          <td><a href="{{ link.url }}">{{ link.description }}</a></td>
+          <td><a href="{{ link.discussion_url }}">{{ link.discussion_url}}</a></td>
+          <td>{{ link.upvotes }}</a></td>
+          <td>{{ link.comments }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </main>
+{% endblock %}

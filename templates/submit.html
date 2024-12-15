@@ -1,0 +1,28 @@
+{% extends "outline.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+    <main>
+      <h2>Submit a Site</h2>
+      <p>If you know (or run) a site that is smaller than 10KiB, please submit it below.</p>
+      <p><b>Please note the following</b>
+        <ol>
+          <li>This site uses the compressed size as the eligibility criteria. Use your browser tools
+            to verify the 'transferred size' from a cold start (no cache) before submitting.</li>
+          <li>Submitted sites will be manually reviewed.  Sites must host some interesting content
+            (i.e., not just be a contact page, or a link to other content that would not otherwise
+            qualify.</li>
+          <li>Interesting doesn't necessarily mean 'lots of writing' -- demos of clever CSS and
+              JavaScript hacks are welcome. Blogs/microblogs are great, too.</li>
+          <li>Sub-pages are acceptable if they represent a unique application, site, or are otherwise
+            distinct or separate from the domain they are hosted on.</li>
+          <li><b>Please submit sites in the form 'http[s]://site.name/[page]'</b></li>
+        </ol>
+      </p>
+      <p>
+        <form method="post" action="/dosubmit/">
+          Site: <input type="text" name="site">
+          <input type="submit" value="Submit Site">
+        </form>
+      </p>
+    </main>
+{% endblock %}

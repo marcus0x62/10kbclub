@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="10kb.club is an index of very small websites hosting interesting content, designs, and clever HTML, CSS, and JavaScript hacks">
+    <link rel="stylesheet" href="/10kb.css">
+    <script src="/10kb.js"></script>
+    <link rel="icon" href="data:," />
+    <title>{% block title %}{% endblock %}</title>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <div class="nav-text-element">
+          <a href="/?sortby=Votes">Sites</a>
+          <a href="/?sortby=New">New Sites</a>
+          <a href="/submit.html">Submit a Site</a>
+        </div>
+      </nav>
+    </header>
+    {% block content %}{% endblock %}
+    <footer>
+      <p class="copyright text-muted">Site made by <a href="https://marcusb.org">Marcus Butler</a></p>
+      <p class="copyright text-muted">
+        The code for this site is available on <a href="https://github.com/marcus0x62/tenkbclub">Github</a>
+      </p>
+    </footer>
+  </body>
+</html>

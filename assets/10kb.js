@@ -21,7 +21,6 @@
  */
 
 async function tryvote(site_id, vote) {
-    console.log(`vote called with ${site_id} - ${vote}`);
     let url = `/vote/`;
 
     let voter_id = await get_id(false);
@@ -98,7 +97,6 @@ async function populate_votes() {
         if (elem.id.match(/vote\-/)) {
             let id = elem.id.split('-')[1];
             ids.push(id);
-            console.log(`pushing ${id}`);
         }
     }
 
@@ -112,7 +110,6 @@ async function populate_votes() {
 
     let voter_id = localStorage.getItem('10kb_voter_id');
 
-    console.log(`voter id is ${voter_id}`);
     try {
         let json;
 

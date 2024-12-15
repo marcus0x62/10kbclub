@@ -22,7 +22,7 @@
 
 use crate::config::Config;
 use reqwest::header::{HeaderMap, HeaderName};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{collections::HashMap, error::Error};
 use tokio::runtime::Handle;
 use tracing::{debug, info};
@@ -35,60 +35,53 @@ pub struct UrlScan {
 
 type UrlScanResult = Result<UrlScan, Box<dyn Error>>;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanSubmit {
     result: UrlScanSubmitResult,
     success: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanSubmitResult {
-    time: String,
-    url: String,
     uuid: String,
-    visibility: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanReport {
     result: UrlScanReportResult,
     success: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanReportResult {
     scan: UrlScanReportResultScan,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanReportResultScan {
     stats: UrlScanReportResultScanStats,
     verdicts: UrlScanReportScanVerdicts,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanReportResultScanStats {
     requests: UrlScanReportResultScanStatsRequests,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanReportResultScanStatsRequests {
-    #[serde(alias = "contentSizeBytes")]
-    content_size: u32,
     #[serde(alias = "transferSizeBytes")]
     transfer_size: u32,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanReportScanVerdicts {
     overall: UrlScanReportVerdictsOverall,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct UrlScanReportVerdictsOverall {
-    categories: Vec<String>,
     malicious: bool,
-    phishing: Vec<String>,
 }
 
 pub async fn urlscan(host: &str, _handle: Handle, config: &Config) -> UrlScanResult {

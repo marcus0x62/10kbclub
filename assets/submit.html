@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en_US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="10kb.club is an index of very small websites hosting interesting content, designs, and clever HTML, CSS, and JavaScript hacks">
+    <link rel="stylesheet" href="/10kb.css">
+    <script src="/10kb.js"></script>
+    <link rel="icon" href="data:," />
+    <title>The 10KB Club -- Submit a Site</title>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <div class="nav-text-element">
+          <a href="/?sortby=Votes">Sites</a>
+          <a href="/?sortby=New">New Sites</a>
+          <a href="/submit.html">Submit a Site</a>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <h2>Submit a Site</h2>
+      <p>If you know (or run) a site that is smaller than 10KiB, please submit it below.</p>
+      <p><b>Please note the following</b>
+        <ol>
+          <li>This site uses the compressed size as the eligibility criteria. Use your browser tools
+            to verify the 'transferred size' from a cold start (no cache) before submitting.</li>
+          <li>Submitted sites will be manually reviewed.  Sites must host some interesting content
+            (i.e., not just be a contact page, or a link to other content that would not otherwise
+            qualify.</li>
+          <li>Interesting doesn't necessarily mean 'lots of writing' -- demos of clever CSS and
+              JavaScript hacks are welcome. Blogs/microblogs are great, too.</li>
+          <li>Sub-pages are acceptable if they represent a unique application, site, or are otherwise
+            distinct or separate from the domain they are hosted on.</li>
+          <li><b>Please submit sites in the form 'http[s]://site.name/[page]'</b></li>
+        </ol>
+      </p>
+      <p>
+        <form method="post" action="/dosubmit/">
+          Site: <input type="text" name="site">
+          <input type="submit" value="Submit Site">
+        </form>
+      </p>
+    </main>
+    <footer>
+      <p class="copyright text-muted">Site made by <a href="https://marcusb.org">Marcus Butler</a></p>
+      <p class="copyright text-muted">
+        The code for this site is available on <a href="https://github.com/marcus0x62/10kbclub">Github</a>
+      </p>
+    </footer>
+  </body>
+</html>
