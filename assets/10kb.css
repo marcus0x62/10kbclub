@@ -1,0 +1,119 @@
+:root {
+    --accent-color: #565656;
+    --text-color: black;
+    --background-color: #fefbea;
+    --navbar-border-top: 2px;
+    --navbar-border-bottom: 1px;
+    --navbar-background-color: #ffffea;
+    --vote-color: orange;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    line-height: 1.4;
+    font-family: sans-serif, Helvetica, Arial;
+    font-size: 14px;
+    color: var(--text-color);
+    background-color: var(--background-color);
+}
+
+main {
+    margin: auto;
+    padding: 50px;
+    flex: 1 0 auto;
+}
+
+header {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: space-between;
+    width: 100%;
+}
+
+img {
+    max-width: 100%;
+}
+
+a:link {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+a:visited {
+    color: var(--accent-color);
+    text-decoration: underline;
+    opacity: 33%;
+}
+
+a.icon:hover {
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+}
+
+tr.even {
+    background-color: lightgrey;
+}
+
+@media screen and (min-width: 650px) {
+}
+
+.navbar {
+    background-color: var(--navbar-background-color);
+    border-top: var(--navbar-border-top) solid var(--accent-color);
+    border-bottom: var(--navbar-border-bottom) solid var(--accent-color);
+    padding-top: 0px;
+    width: 100%;
+    display: flex;
+    top: 0;
+    position: fixed;
+    overflow: auto;
+    height: auto;
+    z-index: 10;
+}
+
+.nav-text-element {
+    flex:1 1 0px;
+    padding-top: 7px;
+    padding-bottom: 5px;
+    padding-left: 50px;
+}
+
+.nav-text-element a {
+   padding-right: 5px;
+}
+
+.copyright {
+    margin: 5px 0;
+    text-align: center;
+    color: var(--accent-color);
+}
+
+.unvoted {
+    transform: rotate(-90deg);
+    color: var(--accent-color);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.upvoted {
+    transform: rotate(-90deg);
+    color: var(--vote-color);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+footer {
+    border-bottom: var(--border-width) solid var(--accent-color);
+}

@@ -1,0 +1,21 @@
+CREATE TABLE sites (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    url TEXT UNIQUE,
+                    size FLOAT,
+                    date_added DATETIME,
+                    banned BOOL,
+                    valid BOOL,
+);
+CREATE TABLE related (id INT REFERENCES sites(id), link TEXT UNIQUE, title TEXT, upvotes INT);
+CREATE TABLE validation_queue(url TEXT UNIQUE,
+                    scan BOOL,
+                    last_checked DATETIME,
+                    site_live BOOL,
+                    urlscan_reportid TEXT,
+                    urlscan_check_timestamp DATETIME,
+                    urlscan_validated BOOL,
+);
+CREATE TABLE validation_log (id INT REFERENCES sites(id), timestamp DATETIME, comment TEXT);
+CREATE TABLE voter_ids(id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT UNIQUE, email TEXT UNIQUE);
+CREATE TABLE votes(id INTEGER REFERENCES sites(id), voter_id INTEGER REFERENCES voter_ids(id),
+                   UNIQUE(id, voter_id)
+);
